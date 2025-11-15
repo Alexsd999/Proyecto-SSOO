@@ -1,0 +1,110 @@
+#include "../include/cab.h"
+#include "../include/funciones.h"
+
+// Obtiene credenciales
+void login(char *nombre, int *pin){
+  printf("==== Bienvenido a ETSIBank ====\nPor favor identifiquese:\nUsuario:");
+  scanf("%s",nombre);
+  printf("PIN: ");
+  scanf("%d",pin);
+}
+// Comprobar si cliente está en bbbdd
+int verificaCliente(Cliente *c){
+  sqlite3 *db;
+  sqlite3_stmt *stmt;
+  int existe=0;
+
+  if(sqlite3_open("../data/clientes.db",&db)!=SQLITE_OK){
+    perror("[ERROR] Error con la base de datos");
+    exit(1);
+  }
+  
+  char *consulta="SELECT id FROM clientes WHERE nombre=? AND pin=?;";
+
+  if(sqlite3_prepare_v2(db,consulta,-1,&stmt,NULL)!=SQLITE_OK){
+    perror("[ERROR] Error con la consulta");
+    sqlite3_close(db);
+    exit(1);
+  }
+  sqlite3_bind_text(stmt,1,c->nombre,-1,SQLITE_STATIC);
+  sqlite3_bind_int(stmt,2,c->pin);
+
+  if(sqlite3_step(stmt)==SQLITE_ROW){
+    c->id_cli=sqlite3_column_int(stmt,0);
+    existe=1;
+  }
+  
+  sqlite3_finalize(stmt);
+  sqlite3_close(db);
+  
+  return existe;
+}
+// Consulta y muestra las cuentas del cliente
+int cuentasCliente(int *id_cliente){
+  sqlite3 *db;
+  sqlite3_stmt *stmt;
+  int total=0;
+  int cuentas_id[MAX_CUENTAS];
+  int ncuenta;
+  
+  if(sqlite3_open("../data/clientes.db",&db)!=SQLITE_OK){
+    perror("[ERROR] Error con la base de datos");
+    exit(1);
+  }
+  
+  char *consulta="SELECT id_cuenta,num_cuenta,saldo FROM cuentas WHERE id_cliente=?;";
+
+  if(sqlite3_prepare_v2(db,consulta,-1,&stmt,NULL)!=SQLITE_OK){
+    perror("[ERROR] Error con la consulta");
+    sqlite3_close(db);
+    exit(1);
+  }
+  
+  sqlite3_bind_int(stmt,1,id_cliente);
+  printf("=== Cuentas asociadas ===\n");
+
+  while(sqlite3_step(stmt)==SQLITE_ROW){
+    int id_cuenta=sqlite3_column_int(stmt,0);
+    char *num_cuenta=(char *)sqlite3_column_text(stmt,1);
+    int saldo=sqlite3_column_int(stmt,2);
+
+    cuentas_id[total]=id_cuenta;
+
+    char *estado= (saldo < 0) ? "INACTIVA" : "ACTIVA";
+    saldo=saldo/100.0;
+    total++;
+    
+    printf("%d) Cuenta %s | Saldo: %.2f € | Estado: %s\n",total,num_cuenta,saldo,estado);
+  }
+
+  sqlite3_finalize(stmt);
+  sqlite3_close(db);
+  
+  if(total==0){
+    printf("[ERROR] Este cliente no tiene cuentas.\n");
+    exit(1);
+  }
+  
+  printf("Seleccione la cuenta a la que desea acceder: ");
+  scanf("%d",&ncuenta);
+
+  while(ncuenta<1 || ncuenta>total){
+    printf("Opción invalida, seleccione otra:");
+    scanf("%d",&ncuenta);
+  }
+  
+  return cuentas_id[ncuenta-1];
+}
+// Muestra opciones a realizar
+int menuOpciones(){
+  int opcion;
+
+  printf("1. Ingresar dinero\n");
+  printf("2. Retirar dinero\n");
+  printf("3. Trasferir dinero\n");
+  printf("4. Salir\n");
+  printf("Seleccione una opción: ");
+  scanf("%d",&opcion);
+  
+  return opcion;
+}
