@@ -1,6 +1,0 @@
-# se ejecuta make -f MakefileGIT push
-
-push:
-	git add .
-	git commit -m "uodate"
-	git push
