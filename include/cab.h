@@ -11,14 +11,19 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/msg.h>
 
 #define MAX_CLI 10
 #define MAX_CUENTAS 50
 //TODO: Implementar para mas cuentas por cliente
 
-#define INGRESAR 0
-#define RETIRAR 1
-#define TRANSFERIR 2
+#define INGRESAR 1
+#define RETIRAR 2
+#define TRANSFERIR 3
+#define SALIR 4
+#define RUTA_CLAVE "."
+#define PROYECTO_CLAVE 'S'
+#define MSG_SIZE (sizeof(msg)-sizeof(long))
 
 // Estructura de una cuenta
 typedef struct{
@@ -33,7 +38,7 @@ typedef struct{
   int tipo;
   long cantidad;
   int cuenta_orig;
-  int cuenta_dest;
+  char cuenta_dest[32];
 } Operacion;
 //Estructura de Banco
 typedef struct{
@@ -46,5 +51,11 @@ typedef struct{
   char nombre[50];
   int pin;
 } Cliente;
+//Estryctyra para las colas de mensajes
+typedef struct{
+  long mtype;
+  int id_cliente;
+  Operacion op;
+} Mensaje;
 
 #endif

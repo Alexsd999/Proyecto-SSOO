@@ -8,5 +8,6 @@ int validaPIN(char *pin);
 int verificaCliente(Cliente *c);
 int cuentasCliente(int *id_cliente);
 int menuOpciones();
+long muestraImportes();
 
 #endif

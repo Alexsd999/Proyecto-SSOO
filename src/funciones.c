@@ -3,7 +3,7 @@
 
 // Obtiene credenciales
 void login(char *nombre, int *pin){
-  printf("==== Bienvenido a ETSIBank ====\n\nPor favor identifiquese:\nUsuario:");
+  printf("\n\n==== Bienvenido a ETSIBank ====\n\nPor favor identifiquese:\nUsuario:");
   scanf("%s",nombre);
   char *clave=getpass("PIN: ");
 
@@ -84,8 +84,8 @@ int cuentasCliente(int *id_cliente){
   
   sqlite3_bind_int(stmt,1,*id_cliente);
   printf("\n=== Cuentas asociadas ===\n");
-  printf("\n%-12s %-32s %-20s %-10s\n","Nº","Número de Cuenta","Saldo (€)","Estado");
-  printf("----------------------------------------------------------------\n");
+  printf("%-12s %-34s %-19s %s\n","Nº","Número de Cuenta","Saldo (€)","Estado");
+  printf("---------------------------------------------------------------------------------\n");
   
   while(sqlite3_step(stmt)==SQLITE_ROW){
     int id_cuenta=sqlite3_column_int(stmt,0);
@@ -98,7 +98,7 @@ int cuentasCliente(int *id_cliente){
     char *estado= (saldo < 0) ? "INACTIVA" : "ACTIVA";
     total++;
 
-    printf("%-4d %-40s %-12.2f %-10s\n",total,num_cuenta,saldo,estado);
+    printf("%-4d %-40s %-16.2f %s\n",total,num_cuenta,saldo,estado);
     //printf("%d Cuenta %s | Saldo: %.2f € | Estado: %s\n",total,num_cuenta,saldo,estado);
     
   }
@@ -125,6 +125,7 @@ int cuentasCliente(int *id_cliente){
 int menuOpciones(){
   int opcion;
 
+  printf("\n¿Qué operación desea hacer?\n");
   printf("1. Ingresar dinero\n");
   printf("2. Retirar dinero\n");
   printf("3. Trasferir dinero\n");
@@ -133,4 +134,55 @@ int menuOpciones(){
   scanf("%d",&opcion);
   
   return opcion;
+}
+// Función generica para importes
+long muestraImportes(){
+  int opcion;
+  long cantidad;
+  int valido=0;
+  char importe[20];
+  
+  printf("\n\n%-4s %-12s %-4s %-12s %-4s %s","1."," 10€ ","3.","50€","5.","500€");
+  printf("\n%-4s %-12s %-4s %-12s %-4s %s\n\n","2."," 25€ ","4.","1000€","6.","Otro importe");
+  printf("Indique una opción: ");
+  scanf("%d",&opcion);
+
+  switch(opcion){
+  case 1:
+    return 10;
+  case 2:
+    return 25;
+  case 3:
+    return 50;
+  case 4:
+    return 100;
+  case 5:
+    return 500;
+  case 6:
+    do{
+      printf("Introduzca importe:");
+      scanf("%s",importe);
+
+      valido=1;
+      for(int i=0;importe[i]!='\0';i++){
+	if(!isdigit(importe[i])){
+	  printf("[ERROR] Por favor, introduzca dígitos.\n");
+	  valido=0;
+	  break;
+	}
+      }
+
+      if(valido){
+	cantidad=atoi(importe);
+	if(cantidad<=0){
+	  printf("[ERROR] La cantidad debe ser mayor o igual a 0.\n");
+	  valido=0;
+	}
+      }
+    }while(!valido);
+    return cantidad;
+  default:
+    printf("[ERROR] Opción inválida.\n");
+    return muestraImportes();
+  }
 }
