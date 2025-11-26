@@ -9,5 +9,7 @@ int verificaCliente(Cliente *c);
 int cuentasCliente(int *id_cliente);
 int menuOpciones();
 long muestraImportes();
+int escr_msg(int qid, Mensaje *msg);
+int leer_msg(int qid,long tipo,Mensaje *msg);
 
 #endif

@@ -12,33 +12,42 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/msg.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <fcntl.h>
+#include <pthread.h>
+#include <signal.h>
 
-#define MAX_CLI 10
+#define MAX_CLI 5
 #define MAX_CUENTAS 50
+#define MAX_MOVIMIENTOS 100
 //TODO: Implementar para mas cuentas por cliente
 
 #define INGRESAR 1
 #define RETIRAR 2
 #define TRANSFERIR 3
-#define SALIR 4
+#define MOVIMIENTOS 4
+#define SALIR 5
 #define RUTA_CLAVE "."
-#define PROYECTO_CLAVE 'S'
-#define MSG_SIZE (sizeof(msg)-sizeof(long))
+#define COLA 'm'
+#define MEMORIA 'S'
+#define MSG_SIZE (sizeof(Mensaje)-sizeof(long))
 
 // Estructura de una cuenta
 typedef struct{
   int id_cuenta;
   int id_cliente;
-  long saldo;
+  double saldo;
   char num_cuenta[32];
-  int activa;
+  char nombre[30];
+  int activa; // Quitar si no se va a usar
 } Cuenta;
 //Estructura de una operación
 typedef struct{
   int tipo;
-  long cantidad;
+  double cantidad;
   int cuenta_orig;
-  char cuenta_dest[32];
+  int cuenta_dest;
 } Operacion;
 //Estructura de Banco
 typedef struct{
@@ -51,11 +60,15 @@ typedef struct{
   char nombre[50];
   int pin;
 } Cliente;
-//Estryctyra para las colas de mensajes
+//Estructra para las colas de mensajes, buffer
 typedef struct{
   long mtype;
   int id_cliente;
   Operacion op;
 } Mensaje;
+//Estructura para historial
+typedef struct{
+  
+} Historial; 
 
 #endif

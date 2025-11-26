@@ -25,11 +25,12 @@ int main(int argc, char *argv[]){
   printf("Bienvenido %s, por favor indique la cuenta a la que desea acceder:\n",c1.nombre);
   id_cuenta=cuentasCliente(&c1.id_cli);
 
-  key_t clave=ftok(RUTA_CLAVE,PROYECTO_CLAVE);
-  int msgqueue_id=msgget(clave,IPC_CREAT|0600);
+  key_t clave=ftok(RUTA_CLAVE,COLA);
+  int msgqueue_id=msgget(clave,0660);
+  long tipo=c1.id_cli;
   
   if(msgqueue_id==-1){
-    printf("[ERROR] No se pudo iniciar la cola.\n");
+    printf("[ERROR] No se pudo acceder a la cola.\n");
     exit(1);
   }
   
@@ -49,15 +50,19 @@ int main(int argc, char *argv[]){
       op.cantidad=muestraImportes();
       break;
     case TRANSFERIR:
-      // Añadir, si puede ser, que se haga transferencia entre bancos
       op.tipo=TRANSFERIR;
       op.cuenta_orig=id_cuenta;
       printf("Indique el número de cuenta destino: ");
-      scanf("%31s",op.cuenta_dest);
+      scanf("%d",&op.cuenta_dest);// Hacer conversion a int id cliente cuentadestino
       printf("¿Qué cantidad desea transferir?");
       op.cantidad=muestraImportes();
       break;
+    case MOVIMIENTOS:
+      op.tipo=MOVIMIENTOS;
+      op.cuenta_orig=id_cuenta;
+      break;
     case SALIR:
+      op.tipo=SALIR;
       printf("Saliendo del sistema, gracias por confiar en nosotros.\n");
       break;
     default:
@@ -65,15 +70,24 @@ int main(int argc, char *argv[]){
       opcion=menuOpciones();
       break;
     }
-  }while(opcion!=4); // CAMBIAR SI SE AÑADEN MAS OPCIONES!!
-  msg.mtype=1;
-  msg.id_cliente=c1.id_cli; // Para que el banco identifique al cliente
-  msg.op=op;
+    msg.mtype=tipo;
+    msg.id_cliente=c1.id_cli; // Para que el banco identifique al cliente
+    msg.op=op;
 
-  if(msgsnd(msgqueue_id,&msg,MSG_SIZE,0)==-1)
-    perror("[ERROR] Error al enviar mensaje al banco.\n");
-  else
-    printf("Operación enviada al banco.\n");
+    if(escr_msg(msgqueue_id,&msg)==-1){
+      printf("[ERROR] No se pudo enviar su solicitud al banco, inténtelo de nuevo.\n");
+      exit(1);
+    }else if(opcion!=SALIR)
+      printf("Enviando solicitud al banco, por favor espere a ser atendido.\n");
+    if(opcion!=SALIR){
+      if(leer_msg(msgqueue_id,tipo,&msg)==-1){
+	printf("Error al recibir el mensaje.\n");
+	exit(1);
+      }
+      if(opcion!=MOVIMIENTOS)
+	printf("\nSe ha realizado la operacion con éxito, su nuevo saldo es de %.2f€\n",msg.op.cantidad);
+    } 
+  }while(opcion!=SALIR); // CAMBIAR SI SE AÑADEN MAS OPCIONES!!, (en el cab.h)
   
   return 0;
 }

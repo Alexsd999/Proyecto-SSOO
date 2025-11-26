@@ -34,7 +34,7 @@ int verificaCliente(Cliente *c){
 
   if(sqlite3_open("data/clientes.db",&db)!=SQLITE_OK){
     //perror("[ERROR] Error con la base de datos");
-    fprintf(stderr,"[ERROR] Error con la base de datos: %s\n",sqlite3_errmsg(db));
+    printf("[ERROR] Error con la base de datos: %s\n",sqlite3_errmsg(db));
     exit(1);
   }
   
@@ -42,7 +42,7 @@ int verificaCliente(Cliente *c){
 
   if(sqlite3_prepare_v2(db,consulta,-1,&stmt,NULL)!=SQLITE_OK){
     //perror("[ERROR] Error con la consulta");
-    fprintf(stderr,"[ERROR] Error con la consulta: %s\n",sqlite3_errmsg(db));
+    printf("[ERROR] Error con la consulta: %s\n",sqlite3_errmsg(db));
     sqlite3_close(db);
     exit(1);
   }
@@ -69,7 +69,7 @@ int cuentasCliente(int *id_cliente){
   
   if(sqlite3_open("data/clientes.db",&db)!=SQLITE_OK){
     //perror("[ERROR] Error con la base de datos");
-    fprintf(stderr,"[ERROR] Error con la base de datos: %s\n",sqlite3_errmsg(db));
+    printf("[ERROR] Error con la base de datos: %s\n",sqlite3_errmsg(db));
     exit(1);
   }
   
@@ -77,7 +77,7 @@ int cuentasCliente(int *id_cliente){
 
   if(sqlite3_prepare_v2(db,consulta,-1,&stmt,NULL)!=SQLITE_OK){
     // perror("[ERROR] Error con la consulta");
-    fprintf(stderr,"[ERROR] Error con la consulta: %s\n",sqlite3_errmsg(db));
+    printf("[ERROR] Error con la consulta: %s\n",sqlite3_errmsg(db));
     sqlite3_close(db);
     exit(1);
   }
@@ -129,7 +129,8 @@ int menuOpciones(){
   printf("1. Ingresar dinero\n");
   printf("2. Retirar dinero\n");
   printf("3. Trasferir dinero\n");
-  printf("4. Salir\n");
+  printf("4. Mostrar últimos cinco movimientos.\n");
+  printf("5. Salir\n");
   printf("Seleccione una opción: ");
   scanf("%d",&opcion);
   
@@ -142,8 +143,8 @@ long muestraImportes(){
   int valido=0;
   char importe[20];
   
-  printf("\n\n%-4s %-12s %-4s %-12s %-4s %s","1."," 10€ ","3.","50€","5.","500€");
-  printf("\n%-4s %-12s %-4s %-12s %-4s %s\n\n","2."," 25€ ","4.","1000€","6.","Otro importe");
+  printf("\n\n%-4s %-12s %-4s %-12s %-4s %s","1."," 10€ ","3.","50€","5.","1000€");
+  printf("\n%-4s %-12s %-4s %-12s %-4s %s\n\n","2."," 25€ ","4.","500€","6.","Otro importe");
   printf("Indique una opción: ");
   scanf("%d",&opcion);
 
@@ -186,3 +187,16 @@ long muestraImportes(){
     return muestraImportes();
   }
 }
+
+int escr_msg(int qid, Mensaje *msg) { 
+   int resultado;
+   resultado=msgsnd(qid,msg,MSG_SIZE,0);
+   return (resultado);
+}
+
+int leer_msg(int qid,long tipo,Mensaje *msg) { 
+   int resultado;
+   resultado=msgrcv(qid,msg,MSG_SIZE,tipo,0);  
+   return (resultado); 
+}
+
